@@ -3,7 +3,7 @@ limit_top_count: 500_000
 max_tfidf_features: 512
 n_trees: 1000
 tree_depth: 6
-objective: classification
+objective: ranking
 features:
   - categories
   - catergory_history

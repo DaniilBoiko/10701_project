@@ -162,7 +162,7 @@ logging.info('Evaluating...')
 print('Train AUC:', roc_auc_score(y_train, model.predict_proba(x_train)))
 print('Test AUC:', roc_auc_score(y_test, model.predict_proba(x_test)))
 
-print('Most important words:')
+print('Most important features:')
 
 importance = model.get_feature_importances()
 indices = np.argsort(importance)[::-1]
