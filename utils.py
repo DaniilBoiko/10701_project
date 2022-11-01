@@ -41,3 +41,18 @@ def load_dataset(path):
     news = dict(tqdm(load_news(os.path.join(path, 'news.tsv')), leave=False))
     behaviors = list(tqdm(load_behaviors(os.path.join(path, 'behaviors.tsv')), leave=False))
     return news, behaviors
+
+
+def one_hot_encode(category, categories_mapper):
+    one_hot = [0] * len(categories_mapper)
+    if category in categories_mapper:
+        one_hot[categories_mapper[category]] = 1
+    return one_hot
+
+
+def encode_distribution(categories, categories_mapper):
+    encoded = [0] * len(categories_mapper)
+    for category in categories:
+        if category in categories_mapper:
+            encoded[categories_mapper[category]] += 1
+    return encoded
