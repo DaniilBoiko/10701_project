@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-6">We've analyzed millions of news articles...</h1>
+    <p class="lead">... and now we can recommend them</p>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12 text-center">
+            <a class="btn btn-primary" href="{{ url_for('predict') }}">
+                Predict
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

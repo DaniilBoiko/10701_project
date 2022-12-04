@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<div class="container">
+    {% for article, score in news %}
+    <div class="row mb-5">
+        <div class="col-10">
+            <h2>{{ article[2] }}</h2>
+            <span class="badge badge-primary">{{ article[0] }}</span> <span class="badge badge-secondary">{{ article[1] }}</span>
+            <p>{{ article[3] }}</p>
+            <p><a class="btn btn-secondary" href="{{ article[4] }}" role="button">View details &raquo;</a></p>
+        </div>
+        <div class="col-2">
+            <p>Model prediction:</p>
+            <p><span class="badge badge-success">{{ score }}</span></p>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}
