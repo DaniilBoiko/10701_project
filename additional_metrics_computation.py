@@ -3,14 +3,14 @@ from utils import CATEGORY, encode_distribution
 
 
 class Diversity:
-    def __init__(self, category_mapper, k=5):
-        self.k = k
+    def __init__(self, category_mapper):
         self.category_mapper = category_mapper
 
     def compute(self, recommendations):
-        categories = [self.category_mapper[recommendation[CATEGORY]] for recommendation in recommendations]
+        categories = [recommendation[CATEGORY] for recommendation in recommendations]
         distribution = encode_distribution(categories, self.category_mapper)
-        distribution = np.array(distribution)
+        distribution = np.array(distribution).astype(np.float32)
+        distribution /= distribution.sum()
 
         # Compute entropy
         entropy = -np.sum(distribution * np.log(distribution + 1e-10))
