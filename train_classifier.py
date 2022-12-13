@@ -68,7 +68,7 @@ available_categories_mapper = {category: i for i, category in enumerate(availabl
 available_subcategories_mapper = {subcategory: i for i, subcategory in enumerate(available_subcategories)}
 
 
-def prepare_data(behaviors, news):
+def prepare_data(behaviors, news, is_train=False):
     x, y, group_ids = [], [], []
 
     logging.info('Preparing data...')
@@ -82,7 +82,7 @@ def prepare_data(behaviors, news):
             category_history = [news[news_id][CATEGORY] for news_id in behavior[HISTORY]]
             category_history_distribution = encode_distribution(category_history, available_categories_mapper)
 
-        for news_id, action in behavior[IMPRESSIONS]:
+        for impression_idx, news_id, action in enumerate(behavior[IMPRESSIONS]):
             features = {}
             features['title'] = news[news_id][TITLE]
             if 'categories' in config['features']:
@@ -94,7 +94,10 @@ def prepare_data(behaviors, news):
                 features['category_history'] = category_history_distribution.copy()
 
             x.append(features)
-            y.append(int(action))
+
+            weights = [0.10824706, 0.10777562, 0.07549454, 0.06788137, 0.05707005, 0.05215175, 0.04936769, 0.04294588,
+                       0.04027012, 0.03807855]
+            y.append(int(action) / (weights[impression_idx] if is_train else 1))
             group_ids.append(group_id)
 
     if config['limit_top']:
@@ -110,7 +113,7 @@ def prepare_data(behaviors, news):
     return x, y, group_ids
 
 
-x_train, y_train, groups_train = prepare_data(behaviors_train, news_train)
+x_train, y_train, groups_train = prepare_data(behaviors_train, news_train, is_train=True)
 x_test, y_test, groups_test = prepare_data(behaviors_test, news_test)
 
 logging.info('Vectorizing...')
