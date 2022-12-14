@@ -1,5 +1,5 @@
 limit_top: true
-limit_top_count: 500_000
+limit_top_count: 50_000
 max_tfidf_features: 512
 n_trees: 1000
 tree_depth: 6
@@ -7,4 +7,6 @@ objective: ranking
 features:
   - categories
   - catergory_history
+  - click_history
 print_top_features: 50
+embedding: tfidf
