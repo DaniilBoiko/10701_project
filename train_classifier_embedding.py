@@ -72,6 +72,10 @@ def embed_news(news_train, news_test, config):
 
         for k, title in zip(news_test.keys(), news_test_titles):
             news_test[k][TITLE] = title
+
+        # Save vectorizer
+        with open('./vectorizer.pkl', 'wb') as f:
+            pickle.dump(vectorizer, f)
     elif config['embedding'] == 'use':
         embedding = np.load("embeds/train_embeds.npy")
         for k, embed in zip(news_train.keys(), embedding):
@@ -80,10 +84,6 @@ def embed_news(news_train, news_test, config):
         for k, embed in zip(news_test.keys(), embedding):
             news_test[k][TITLE] = embed
         feature_names = [str(i) for i in range(embedding.shape[1])]
-
-    # Save vectorizer
-    with open('./vectorizer.pkl', 'wb') as f:
-        pickle.dump(vectorizer, f)
 
     return news_test, news_train, feature_names
 

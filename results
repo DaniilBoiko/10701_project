@@ -1,0 +1,75 @@
+objective: classification
+features:
+  - categories
+embedding: tfidf
+Train AUC: 0.7522421491363961
+Test shape: (500000, 776)
+Test AUC: 0.5620419867655255
+{'ndcg_5': 0.23801898207911434, 'ndcg_10': 0.3070863136372105}
+
+objective: classification
+features:
+  - categories
+embedding: use
+Train AUC: 0.7611521842645904
+Test shape: (500000, 776)
+Test AUC: 0.5611959098985126
+{'ndcg_5': 0.25613723182705317, 'ndcg_10': 0.3194873733782606}
+
+objective: classification
+features:
+  - categories
+  - click_history
+embedding: tfidf
+Train AUC: 0.9985136829792127
+Test shape: (500000, 1288)
+Test AUC: 0.5902042489941305
+{'ndcg_5': 0.27506178658728553, 'ndcg_10': 0.3384156958658558}
+
+objective: classification
+features:
+  - categories
+  - click_history
+embedding: use
+Train AUC: 0.9999422466102299
+Test shape: (500000, 1288)
+Test AUC: 0.62388116555567
+{'ndcg_5': 0.2806394914694092, 'ndcg_10': 0.346033929890179}
+
+objective: ranking
+features:
+  - categories
+embedding: tfidf
+Train AUC: 0.7279496838516304
+Test shape: (500000, 776)
+Test AUC: 0.5300544839309327
+{'ndcg_5': 0.2462121899489514, 'ndcg_10': 0.310894973093219}
+
+objective: ranking
+features:
+  - categories
+embedding: use
+Train AUC: 0.7336673883575
+Test shape: (500000, 776)
+Test AUC: 0.5556373849732437
+{'ndcg_5': 0.2508935528532562, 'ndcg_10': 0.3157972181566236}
+
+objective: ranking
+features:
+  - categories
+  - click_history
+embedding: tfidf
+Train AUC: 0.9903899344615814
+Test shape: (500000, 1288)
+Test AUC: 0.5613941410697179
+{'ndcg_5': 0.2728121874916546, 'ndcg_10': 0.3359076107153965}
+
+objective: ranking
+features:
+  - categories
+  - click_history
+embedding: use
+Train AUC: 0.9992578413347903
+Test shape: (500000, 1288)
+Test AUC: 0.6325682506352127
+{'ndcg_5': 0.297010055931521, 'ndcg_10': 0.3601228185317513}
