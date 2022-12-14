@@ -2,6 +2,7 @@ import os
 import argparse
 import yaml
 import logging
+import pickle
 from utils import load_dataset, IMPRESSIONS, TITLE, CATEGORY, SUBCATEGORY, HISTORY, one_hot_encode, encode_distribution
 
 from tqdm.autonotebook import tqdm
@@ -22,7 +23,7 @@ class Model:
         if self.objective == 'classification':
             self.model = xgb.XGBClassifier(n_estimators=n_trees, max_depth=tree_depth, n_jobs=-1, gpu_id=0, tree_method='gpu_hist')
         elif self.objective == 'ranking':
-            self.model = xgb.XGBRanker(n_estimators=n_trees, max_depth=tree_depth, n_jobs=-1)
+            self.model = xgb.XGBRanker(n_estimators=n_trees, max_depth=tree_depth, n_jobs=-1, gpu_id=0, tree_method='gpu_hist')
 
     def fit(self, X, y, group_ids):
         if self.objective == 'classification':
@@ -80,6 +81,10 @@ def embed_news(news_train, news_test, config):
             news_test[k][TITLE] = embed
         feature_names = [str(i) for i in range(embedding.shape[1])]
 
+    # Save vectorizer
+    with open('./vectorizer.pkl', 'wb') as f:
+        pickle.dump(vectorizer, f)
+
     return news_test, news_train, feature_names
 
 def prepare_data(behaviors, news, is_train = False):
@@ -95,6 +100,10 @@ def prepare_data(behaviors, news, is_train = False):
         if config['limit_top']:
             if len(x) >= config['limit_top_count']:
                 break
+
+        behavior = list(behavior)
+        if behavior[HISTORY][0] == '':
+            behavior[HISTORY] = []
 
         if 'category_history' in config['features']:
             category_history = [news[news_id][CATEGORY] for news_id in behavior[HISTORY]]
@@ -117,7 +126,7 @@ def prepare_data(behaviors, news, is_train = False):
                 for click_news_id in behavior[HISTORY]:
                     if len(click_news_id) != 0:
                         news_embed += news[click_news_id][TITLE]
-                news_embed = news_embed / len(behavior[HISTORY])
+                news_embed = (news_embed / len(behavior[HISTORY]) if len(behavior[HISTORY]) != 0 else news_embed)
                 features['click_history'] = news_embed
 
             x.append(features)
@@ -138,6 +147,44 @@ def prepare_data(behaviors, news, is_train = False):
     # x = tokenize_dataset(x)
 
     return x, y, group_ids
+
+def format_data(x):
+    all_features = [np.vstack([features['title'] for features in x])]
+
+    if 'categories' in config['features']:
+        x_categories = np.vstack([features['category'] for features in x])
+
+        all_features.append(x_categories)
+
+    if 'subcategories' in config['features']:
+        x_subcategories = np.vstack([features['subcategory'] for features in x])
+
+        all_features.append(x_subcategories)
+
+    if 'category_history' in config['features']:
+        x_category_history = np.vstack([features['category_history'] for features in x])
+
+        all_features.append(x_category_history)
+
+    if 'click_history' in config['features']:
+        all_features.append(np.vstack([features['click_history'] for features in x]))
+
+    return np.hstack(all_features)
+
+def get_feature_names(feature_names):
+    if 'categories' in config['features']:
+        feature_names += ['category_' + category for category in available_categories]
+
+    if 'subcategories' in config['features']:
+        feature_names += ['subcategory_' + subcategory for subcategory in available_subcategories]
+
+    if 'category_history' in config['features']:
+        feature_names += ['category_history_' + category for category in available_categories]
+
+    if 'click_history' in config['features']:
+        feature_names += feature_names[:config['max_tfidf_features']]
+
+    return feature_names
 
 config = get_config()
 
@@ -175,41 +222,6 @@ x_test, y_test, groups_test = prepare_data(behaviors_test, news_test)
 # Delete reference to prevent excess memory use
 del behaviors_train, news_train, behaviors_test, news_test, available_categories_mapper, available_subcategories_mapper
 
-def format_data(x):
-    all_features = [np.vstack([features['title'] for features in x])]
-
-    if 'categories' in config['features']:
-        x_categories = np.vstack([features['category'] for features in x])
-
-        all_features.append(x_categories)
-
-    if 'subcategories' in config['features']:
-        x_subcategories = np.vstack([features['subcategory'] for features in x])
-
-        all_features.append(x_subcategories)
-
-    if 'category_history' in config['features']:
-        x_category_history = np.vstack([features['category_history'] for features in x])
-
-        all_features.append(x_category_history)
-
-    if 'click_history' in config['features']:
-        all_features.append(np.vstack([features['click_history'] for features in x]))
-
-    return np.hstack(all_features)
-
-def get_feature_names(feature_names):
-    if 'categories' in config['features']:
-        feature_names += ['category_' + category for category in available_categories]
-
-    if 'subcategories' in config['features']:
-        feature_names += ['subcategory_' + subcategory for subcategory in available_subcategories]
-
-    if 'category_history' in config['features']:
-        feature_names += ['category_history_' + category for category in available_categories]
-
-    return feature_names
-
 # Format and store test data (memory)
 x_test = format_data(x_test)
 np.savez("test_data.npz", x_test = x_test, y_test = y_test)
@@ -241,12 +253,11 @@ print('Test shape:', x_test.shape)
 
 print('Test AUC:', roc_auc_score(y_test, model.predict_proba(x_test)))
 
-print('Most important features:')
+# print('Most important features:')
 
 importance = model.get_feature_importances()
 indices = np.argsort(importance)[::-1]
 
-for i in range(config['print_top_features']):
-    print(feature_names[indices[i]], '\t', importance[indices[i]])
-
+# for i in range(config['print_top_features']):
+#     print(feature_names[indices[i]], '\t', importance[indices[i]])
 print(compute_groupwise_metrics(np.array(y_test), model.predict_proba(x_test), groups_test, [ndcg_5, ndcg_10]))
