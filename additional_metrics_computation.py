@@ -6,8 +6,12 @@ class Diversity:
     def __init__(self, category_mapper):
         self.category_mapper = category_mapper
 
-    def compute(self, recommendations):
-        categories = [recommendation[CATEGORY] for recommendation in recommendations]
+    def compute(self, recommendations, rec=True):
+        if rec:
+            categories = [recommendation[CATEGORY] for recommendation in recommendations]
+        else:
+            categories = [recommendation for recommendation in recommendations]
+
         distribution = encode_distribution(categories, self.category_mapper)
         distribution = np.array(distribution).astype(np.float32)
         distribution /= distribution.sum()
